@@ -188,6 +188,17 @@ void writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd);
 void writeChannelEnd(void);
 
 
+void PCA9685_i2c_start();
+void PCA9685_i2c_stop();
+void PCA9685_i2c_restart();
+void PCA9685_i2c_writeByte(uint8_t dato);
+uint8_t PCA9685_i2c_readByte(bool ack);
+
+
+void PCA9685_writeRegister(uint8_t reg, uint8_t val);
+uint8_t PCA9685_readRegister(uint8_t reg);
+
+
 /**
  * Variables internas
  */

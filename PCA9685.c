@@ -3,10 +3,16 @@
 #include "../../utils/utils.h"
 #include "PCA9685.h"
 
-
-#if defined( PCA8695_I2C_MODULE ) 
+/**
+ * @brief
+ * @param
+ * @param
+ * @return
+ */
+void PCA9685_i2c_start(){
+    #if defined( PCA8695_I2C_MODULE ) 
 	#if PCA8695_I2C_MODULE == 1 
-
+    
     #elif PCA8695_I2C_MODULE == 2 
 
 	#elif PCA8695_I2C_MODULE == 0
@@ -14,112 +20,279 @@
 	#endif
 #else
 	#error No está definido el módulo i2c. Verificar.
-#endif   
+#endif 
+}
 
 /**
+ * @brief
+ * @param
+ * @param
+ * @return
+ */
+void PCA9685_i2c_stop(){
+    #if defined( PCA8695_I2C_MODULE ) 
+	#if PCA8695_I2C_MODULE == 1 
+    
+    #elif PCA8695_I2C_MODULE == 2 
+
+	#elif PCA8695_I2C_MODULE == 0
+	
+	#endif
+#else
+	#error No está definido el módulo i2c. Verificar.
+#endif 
+}
+
+/**
+ * @brief
+ * @param
+ * @param
+ * @return
+ */
+void PCA9685_i2c_restart(){
+    #if defined( PCA8695_I2C_MODULE ) 
+	#if PCA8695_I2C_MODULE == 1 
+    
+    #elif PCA8695_I2C_MODULE == 2 
+
+	#elif PCA8695_I2C_MODULE == 0
+	
+	#endif
+#else
+	#error No está definido el módulo i2c. Verificar.
+#endif 
+}
+
+/**
+ * @brief
+ * @param
+ * @param
+ * @return
+ */
+void PCA9685_i2c_writeByte(uint8_t dato){
+    #if defined( PCA8695_I2C_MODULE ) 
+	#if PCA8695_I2C_MODULE == 1 
+    
+    #elif PCA8695_I2C_MODULE == 2 
+
+	#elif PCA8695_I2C_MODULE == 0
+	
+	#endif
+#else
+	#error No está definido el módulo i2c. Verificar.
+#endif 
+}
+
+/**
+ * @brief
+ * @param
+ * @param
+ * @return
+ */
+uint8_t PCA9685_i2c_readByte(bool ack){
+    #if defined( PCA8695_I2C_MODULE ) 
+	#if PCA8695_I2C_MODULE == 1 
+    return 0;////
+    #elif PCA8695_I2C_MODULE == 2 
+    return 0;////
+	#elif PCA8695_I2C_MODULE == 0
+	return 0;////
+	#endif
+#else
+	#error No está definido el módulo i2c. Verificar.
+#endif 
+}
+
+
+
+
+/**
+ * @brief
+ * @param
+ * @param
+ * @return
+ */
+void PCA9685_writeRegister(uint8_t reg, uint8_t val){
+    PCA9685_i2c_start();
+    PCA9685_i2c_writeByte(_i2cAddress);
+    PCA9685_i2c_writeByte(reg);
+    PCA9685_i2c_writeByte(val);
+    PCA9685_i2c_stop();
+}
+
+/**
+ * @brief
+ * @param
+ * @return
+ */
+uint8_t PCA9685_readRegister(uint8_t reg){
+    uint8_t retval;
+    PCA9685_i2c_start();
+    PCA9685_i2c_writeByte(_i2cAddress);
+    PCA9685_i2c_writeByte(reg);
+    retval = PCA9685_i2c_readByte(1);
+    PCA9685_i2c_stop();
+    return retval;
+}
+
+/**
+ * @brief
+ * @param
+ * @return
  */
 void PCA9685_init(uint8_t add, uint8_t mode) {
 }
 
+/**
+ * @brief
+ * @param
+ * @return
+ */
 void PCA9685_resetDevices(void) {
 }
 
-
-PCA9685_OutputDriverMode getOutputDriverMode(void) {
+/**
+ * @brief
+ * @param
+ * @return
+ */
+PCA9685_OutputDriverMode PCA9685_getOutputDriverMode(void) {
 	return _driverMode;
 }
 
-PCA9685_OutputEnabledMode getOutputEnabledMode(void) {
+/**
+ * @brief
+ * @param
+ * @return
+ */
+PCA9685_OutputEnabledMode PCA9685_getOutputEnabledMode(void) {
 	return _enabledMode;
 }
 
-PCA9685_OutputDisabledMode getOutputDisabledMode(void) {
+/**
+ * @brief
+ * @param
+ * @return
+ */
+PCA9685_OutputDisabledMode PCA9685_getOutputDisabledMode(void) {
 	return _disabledMode;
 }
 
-PCA9685_ChannelUpdateMode getChannelUpdateMode(void) {
+/**
+ * @brief
+ * @param
+ * @return
+ */
+PCA9685_ChannelUpdateMode PCA9685_getChannelUpdateMode(void) {
 	return _updateMode;
 }
 
-PCA9685_PhaseBalancer getPhaseBalancer(void) {
+/**
+ * @brief
+ * @param
+ * @return
+ */
+PCA9685_PhaseBalancer PCA9685_getPhaseBalancer(void) {
 	return _phaseBalancer;
 }
 
-
+/**
+ * @brief
+ * @param
+ * @return
+ */
 void PCA9685_setPWMFrequency(float pwm_freq) {
 	if(pwm_freq < 0)	return;// Valor incorrecto
 
 	uint32_t divisor = 4096 * (uint16_t)(pwm_freq);
 	uint32_t preescala = (uint16_t)division_entera_sin_signo(PCA8695_OSC_CLOCK,divisor)-1;
-	preescala = (preescala > 255)? 255:((preescala < 3)? 3: preescala );	// Acotación [3,255]
+	preescala = (uint8_t)constrain(preescala,3,255);	// Acotación [3,255]
 
-	#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-    Serial.print("PCA9685::setPWMFrequency pwmFrequency: ");
-    Serial.print(pwmFrequency);
-    Serial.print(", preScalerVal: 0x");
-    Serial.println(preScalerVal, HEX);
+	#ifdef PCA8695_DEBUG
+    printf("Set PWM frequency -> %.2f [Hz] prescale-> 0x%X\r\n",pwm_freq,preescala);
 	#endif
 
 	// El registro PRE_SCALE solo se puede establecer cuando el bit SLEEP del registro MODE1 se establece en 1 lógico.
-    uint8_t mode1Reg = readRegister(PCA9685_MODE1_REG);
-    writeRegister(PCA9685_MODE1_REG, (mode1Reg = (mode1Reg & ~PCA9685_MODE1_RESTART) | PCA9685_MODE1_SLEEP));
-    writeRegister(PCA9685_PRESCALE_REG, (uint8_t)preescala);
+    uint8_t mode1Reg = PCA9685_readRegister(PCA9685_MODE1_REG);
+    mode1Reg = (mode1Reg & ~PCA9685_MODE1_RESTART) | PCA9685_MODE1_SLEEP;
+    PCA9685_writeRegister(PCA9685_MODE1_REG, mode1Reg);
+    PCA9685_writeRegister(PCA9685_PRESCALE_REG, preescala);
 
     // Se necesitan 500 [μs] como máximo para que el oscilador esté en funcionamiento una vez que el bit SLEEP se haya establecido en 0 lógico.
-    writeRegister(PCA9685_MODE1_REG, (mode1Reg = (mode1Reg & ~PCA9685_MODE1_SLEEP) | PCA9685_MODE1_RESTART));
+    mode1Reg = (mode1Reg & ~PCA9685_MODE1_SLEEP) | PCA9685_MODE1_RESTART;
+    PCA9685_writeRegister(PCA9685_MODE1_REG, mode1Reg);
     __delay_us(500);
 
 
 
 }
 
+/**
+ * @brief
+ * @param
+ * @return
+ */
 void PCA9685_setChannelOn(uint16_t channel) {
 	if (channel < 0 || channel > 15) return;
-	#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-    Serial.println("PCA9685::setChannelOn");
+	#ifdef PCA8695_DEBUG
+    printf("Channel %u ON\r\n");
 	#endif
 
-    writeChannelBegin(channel);
-    writeChannelPWM(PCA9685_PWM_FULL, 0);  // time_on = FULL; time_off = 0;
-    writeChannelEnd();
+    PCA9685_writeChannelBegin(channel);
+    PCA9685_writeChannelPWM(PCA9685_PWM_FULL, 0);  // time_on = FULL; time_off = 0;
+    PCA9685_writeChannelEnd();
 }
 
+/**
+ * @brief
+ * @param
+ * @return
+ */
 void PCA9685_setChannelOff(uint16_t channel) {
 	if (channel < 0 || channel > 15) return;
 
-	#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-	Serial.println("PCA9685::setChannelOff");
+	#ifdef PCA8695_DEBUG
+	printf("Channel %u OFF\r\n");
 	#endif
 
-    writeChannelBegin(channel);
-    writeChannelPWM(0, PCA9685_PWM_FULL);  // time_on = 0; time_off = FULL;
-    writeChannelEnd();
+    PCA9685_writeChannelBegin(channel);
+    PCA9685_writeChannelPWM(0, PCA9685_PWM_FULL);  // time_on = 0; time_off = FULL;
+    PCA9685_writeChannelEnd();
 }
-    
+
+/**
+ * @brief
+ * @param
+ * @return
+ */
 void PCA9685_setChannelPWM(uint16_t channel, uint16_t duty_cycle) {
 	if (channel < 0 || channel > 15) return;
 
-	#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-    Serial.println("PCA9685::setChannelPWM");
+	#ifdef PCA8695_DEBUG
+    printf("Channel %u PWM-> %u\r\n",channel,duty_cycle);
 	#endif
 
-    writeChannelBegin(channel);
+    PCA9685_writeChannelBegin(channel);
 
     uint16_t phaseBegin, phaseEnd;
-    getPhaseCycle(channel, duty_cycle, &phaseBegin, &phaseEnd);
+    PCA9685_getPhaseCycle(channel, duty_cycle, &phaseBegin, &phaseEnd);
 
-    writeChannelPWM(phaseBegin, phaseEnd);
+    PCA9685_writeChannelPWM(phaseBegin, phaseEnd);
 
-    writeChannelEnd();
+    PCA9685_writeChannelEnd();
 }
 
+/**
+ * @brief
+ * @param
+ * @return
+ */
 void PCA9685_setChannelsPWM(uint16_t starting_channel, uint16_t num_channels, uint16_t *duty_cycles) {
 	if (starting_channel < 0 || starting_channel > 15 || num_channels < 0) return;
     if (starting_channel + num_channels > 16) num_channels -= (starting_channel + num_channels) - 16;
 
-#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-    Serial.print("PCA9685::setChannelsPWM numChannels: ");
-    Serial.println(numChannels);
+#ifdef PCA8695_DEBUG
+    printf("Set channels PWM. numChannels -> %u",num_channels);
 #endif
 
     // From avr/libraries/Wire.h and avr/libraries/utility/twi.h, BUFFER_LENGTH controls
@@ -128,7 +301,7 @@ void PCA9685_setChannelsPWM(uint16_t starting_channel, uint16_t num_channels, ui
     // other architectures, so we rely on PCA9685_I2C_BUFFER_LENGTH logic to sort it out.
 
     while (num_channels > 0) {
-        writeChannelBegin(starting_channel);
+        PCA9685_writeChannelBegin(starting_channel);
 
 #ifndef PCA9685_USE_SOFTWARE_I2C
         int maxChannels = 0; // PENDIENTE: ////// min(num_channels, (PCA9685_I2C_BUFFER_LENGTH - 1) / 4);
@@ -137,48 +310,54 @@ void PCA9685_setChannelsPWM(uint16_t starting_channel, uint16_t num_channels, ui
 #endif
         while (maxChannels-- > 0) {
             uint16_t phaseBegin, phaseEnd;
-            getPhaseCycle(starting_channel++, *duty_cycles++, &phaseBegin, &phaseEnd);
-
-            writeChannelPWM(phaseBegin, phaseEnd);
+            PCA9685_getPhaseCycle(starting_channel++, *duty_cycles++, &phaseBegin, &phaseEnd);
+            PCA9685_writeChannelPWM(phaseBegin, phaseEnd);
             --num_channels;
         }
 
-        writeChannelEnd();
+        PCA9685_writeChannelEnd();
         if (_lastI2CError) return;
     }
 }
 
+/**
+ * @brief
+ * @param
+ * @return
+ */
 void PCA9685_setAllChannelsPWM(uint16_t duty_cycle) {
-	#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-    Serial.println("PCA9685::setAllChannelsPWM");
+	#ifdef PCA8695_DEBUG
+    printf("Set all channels PWM -> %u",duty_cycle);
 #endif
 
-    writeChannelBegin(PCA9685_ALLLED_CHANNEL);
+    PCA9685_writeChannelBegin(PCA9685_ALLLED_CHANNEL);
 
     uint16_t phaseBegin, phaseEnd;
-    getPhaseCycle(PCA9685_ALLLED_CHANNEL, duty_cycle, &phaseBegin, &phaseEnd);
+    PCA9685_getPhaseCycle(PCA9685_ALLLED_CHANNEL, duty_cycle, &phaseBegin, &phaseEnd);
 
-    writeChannelPWM(phaseBegin, phaseEnd);
+    PCA9685_writeChannelPWM(phaseBegin, phaseEnd);
 
-    writeChannelEnd();
+    PCA9685_writeChannelEnd();
 }
 
+/**
+ * @brief
+ * @param
+ * @return
+ */
 uint16_t PCA9685_getChannelPWM(uint16_t channel) {
 	if (channel < 0 || channel > 15 || _isProxyAddresser) return 0;
 
     uint8_t regAddress = PCA9685_LED0_REG + (channel << 2);
 
-#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-    Serial.print("PCA9685::getChannelPWM channel: ");
-    Serial.print(channel);
-    Serial.print(", regAddress: 0x");
-    Serial.println(regAddress, HEX);
+#ifdef PCA8695_DEBUG
+    printf("Channel %u regAddress -> 0x%X\r\n",channel,regAddress);
 #endif
 
     i2cWire_beginTransmission(_i2cAddress);
     i2cWire_write(regAddress);
     if (i2cWire_endTransmission()) {
-#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
+#ifdef PCA8695_DEBUG
         checkForErrors();
 #endif
         return 0;
@@ -192,7 +371,7 @@ uint16_t PCA9685_getChannelPWM(uint16_t channel) {
         PCA9685_i2c_stop(); // Manually have to send stop bit in software i2c mode
 #endif
         _lastI2CError = 4;
-#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
+#ifdef PCA8695_DEBUG
         checkForErrors();
 #endif
         return 0;
@@ -214,11 +393,9 @@ uint16_t PCA9685_getChannelPWM(uint16_t channel) {
     PCA9685_i2c_stop(); // Manually have to send stop bit in software i2c mode
 #endif
 
-#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-    Serial.print("  PCA9685::getChannelPWM phaseBegin: ");
-    Serial.print(phaseBegin);
-    Serial.print(", phaseEnd: ");
-    Serial.println(phaseEnd);
+#ifdef PCA8695_DEBUG
+    printf(" * phaseBegin: %u\r\n",phaseBegin);
+    printf(" * phaseEnd: %u\r\n",phaseEnd);
 #endif
 
     // See datasheet section 7.3.3
@@ -241,9 +418,8 @@ uint16_t PCA9685_getChannelPWM(uint16_t channel) {
         // Section 7.3.3 example 2
         retVal = (phaseEnd + PCA9685_PWM_FULL) - phaseBegin;
 
-#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-    Serial.print("  PCA9685::getChannelPWM retVal: ");
-    Serial.println(retVal);
+#ifdef PCA8695_DEBUG
+    printf("retVal: %u\r\n",retVal);
 #endif
 
     return retVal;
@@ -251,8 +427,11 @@ uint16_t PCA9685_getChannelPWM(uint16_t channel) {
 
 
 /**
+ * @brief
+ * @param
+ * @return
  */
-void getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd) {
+void PCA9685_getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd) {
 	if (channel == PCA9685_ALLLED_CHANNEL) {
         *phaseBegin = 0; // ALLLED should not receive a phase shifted begin value
     } else {
@@ -286,7 +465,12 @@ void getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16
     }
 }
 
-void writeChannelBegin(int channel) {
+/**
+ * @brief
+ * @param
+ * @return
+ */
+void PCA9685_writeChannelBegin(int channel) {
 	uint8_t regAddress;
 
     if (channel != PCA9685_ALLLED_CHANNEL)
@@ -294,23 +478,23 @@ void writeChannelBegin(int channel) {
     else
         regAddress = PCA9685_ALLLED_REG;
 
-#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-    Serial.print("  PCA9685::writeChannelBegin channel: ");
-    Serial.print(channel);
-    Serial.print(", regAddress: 0x");
-    Serial.println(regAddress, HEX);
+#ifdef PCA8695_DEBUG
+    printf("writeChannelBegin channel -> %u regAddress -> 0x%X\r\n",channel,regAddress);
 #endif
 
     i2cWire_beginTransmission(_i2cAddress);
     i2cWire_write(regAddress);
 }
 
-void writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd) {
-	#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-    Serial.print("  PCA9685::writeChannelPWM phaseBegin: ");
-    Serial.print(phaseBegin);
-    Serial.print(", phaseEnd: ");
-    Serial.println(phaseEnd);
+/**
+ * @brief
+ * @param
+ * @return
+ */
+void PCA9685_writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd) {
+	#ifdef PCA8695_DEBUG
+    printf(" * phaseBegin: %u\r\n",phaseBegin);
+    printf(" * phaseEnd: %u\r\n",phaseEnd);
 #endif
 
 #ifndef PCA9685_SWAP_PWM_BEG_END_REGS
@@ -326,6 +510,11 @@ void writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd) {
 #endif
 }
 
-void writeChannelEnd(void) {
+/**
+ * @brief
+ * @param
+ * @return
+ */
+void PCA9685_writeChannelEnd(void) {
 	i2cWire_endTransmission();
 }
