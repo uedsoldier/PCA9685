@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include "../../utils/utils.h"
@@ -10,16 +11,16 @@
  * @return
  */
 void PCA9685_i2c_start(){
-    #if defined( PCA8695_I2C_MODULE ) 
-	#if PCA8695_I2C_MODULE == 1 
+    #if defined( PCA9685_I2C_MODULE ) 
+	#if PCA9685_I2C_MODULE == 1 
     
-    #elif PCA8695_I2C_MODULE == 2 
+    #elif PCA9685_I2C_MODULE == 2 
 
-	#elif PCA8695_I2C_MODULE == 0
+	#elif PCA9685_I2C_MODULE == 0
 	
 	#endif
 #else
-	#error No está definido el módulo i2c. Verificar.
+	#error No está definido el módulo I²C. Verificar.
 #endif 
 }
 
@@ -30,16 +31,16 @@ void PCA9685_i2c_start(){
  * @return
  */
 void PCA9685_i2c_stop(){
-    #if defined( PCA8695_I2C_MODULE ) 
-	#if PCA8695_I2C_MODULE == 1 
+    #if defined( PCA9685_I2C_MODULE ) 
+	#if PCA9685_I2C_MODULE == 1 
     
-    #elif PCA8695_I2C_MODULE == 2 
+    #elif PCA9685_I2C_MODULE == 2 
 
-	#elif PCA8695_I2C_MODULE == 0
+	#elif PCA9685_I2C_MODULE == 0
 	
 	#endif
 #else
-	#error No está definido el módulo i2c. Verificar.
+	#error No está definido el módulo I²C. Verificar.
 #endif 
 }
 
@@ -50,16 +51,16 @@ void PCA9685_i2c_stop(){
  * @return
  */
 void PCA9685_i2c_restart(){
-    #if defined( PCA8695_I2C_MODULE ) 
-	#if PCA8695_I2C_MODULE == 1 
+    #if defined( PCA9685_I2C_MODULE ) 
+	#if PCA9685_I2C_MODULE == 1 
     
-    #elif PCA8695_I2C_MODULE == 2 
+    #elif PCA9685_I2C_MODULE == 2 
 
-	#elif PCA8695_I2C_MODULE == 0
+	#elif PCA9685_I2C_MODULE == 0
 	
 	#endif
 #else
-	#error No está definido el módulo i2c. Verificar.
+	#error No está definido el módulo I²C. Verificar.
 #endif 
 }
 
@@ -70,16 +71,16 @@ void PCA9685_i2c_restart(){
  * @return
  */
 void PCA9685_i2c_writeByte(uint8_t dato){
-    #if defined( PCA8695_I2C_MODULE ) 
-	#if PCA8695_I2C_MODULE == 1 
+    #if defined( PCA9685_I2C_MODULE ) 
+	#if PCA9685_I2C_MODULE == 1 
     
-    #elif PCA8695_I2C_MODULE == 2 
+    #elif PCA9685_I2C_MODULE == 2 
 
-	#elif PCA8695_I2C_MODULE == 0
+	#elif PCA9685_I2C_MODULE == 0
 	
 	#endif
 #else
-	#error No está definido el módulo i2c. Verificar.
+	#error No está definido el módulo I²C. Verificar.
 #endif 
 }
 
@@ -90,20 +91,20 @@ void PCA9685_i2c_writeByte(uint8_t dato){
  * @return
  */
 uint8_t PCA9685_i2c_readByte(bool ack){
-    #if defined( PCA8695_I2C_MODULE ) 
-	#if PCA8695_I2C_MODULE == 1 
+    #if defined( PCA9685_I2C_MODULE ) 
+	#if PCA9685_I2C_MODULE == 1 
     return 0;////
-    #elif PCA8695_I2C_MODULE == 2 
+    #elif PCA9685_I2C_MODULE == 2 
     return 0;////
-	#elif PCA8695_I2C_MODULE == 0
+	#elif PCA9685_I2C_MODULE == 0
 	return 0;////
 	#endif
 #else
-	#error No está definido el módulo i2c. Verificar.
+	#error No está definido el módulo I²C. Verificar.
 #endif 
 }
 
-
+const uint8_t i = PCA9685_MAX_CHANNEL;
 
 
 /**
@@ -136,19 +137,27 @@ uint8_t PCA9685_readRegister(uint8_t reg){
 }
 
 /**
- * @brief
+ * @brief Función de inicialización de módulos PCA9685 individualmente (por direccionamiento directo mediante los pines [A5..0])
  * @param
  * @return
  */
-void PCA9685_init(uint8_t add, uint8_t mode) {
+void PCA9685_init(uint8_t address, uint8_t mode) {
 }
 
 /**
- * @brief
- * @param
- * @return
+ * @brief Función para realizar secuencia de reset por software para los módulos PCA9685 presentes en el bus I²C
+ * @param (void)
+ * @return (void)
  */
 void PCA9685_resetDevices(void) {
+    #ifdef PCA9685_DEBUG
+    printf("PCA9685 Software reset\r\n");
+    #endif
+    PCA9685_i2c_start();
+    PCA9685_i2c_writeByte(0x00);                    // General Call Address
+    PCA9685_i2c_writeByte(PCA9685_SOFTWARE_RESET);  // Constante para software reset
+    PCA9685_i2c_stop();
+    __delay_us(10);
 }
 
 /**
@@ -201,14 +210,14 @@ PCA9685_PhaseBalancer PCA9685_getPhaseBalancer(void) {
  * @param
  * @return
  */
-void PCA9685_setPWMFrequency(float pwm_freq) {
+void PCA9685_setFrequency(float pwm_freq) {
 	if(pwm_freq < 0)	return;// Valor incorrecto
 
 	uint32_t divisor = 4096 * (uint16_t)(pwm_freq);
-	uint32_t preescala = (uint16_t)division_entera_sin_signo(PCA8695_OSC_CLOCK,divisor)-1;
+	uint32_t preescala = (uint16_t)division_entera_sin_signo(PCA9685_OSC_CLOCK,divisor)-1;
 	preescala = (uint8_t)constrain(preescala,3,255);	// Acotación [3,255]
 
-	#ifdef PCA8695_DEBUG
+	#ifdef PCA9685_DEBUG
     printf("Set PWM frequency -> %.2f [Hz] prescale-> 0x%X\r\n",pwm_freq,preescala);
 	#endif
 
@@ -234,7 +243,7 @@ void PCA9685_setPWMFrequency(float pwm_freq) {
  */
 void PCA9685_setChannelOn(uint16_t channel) {
 	if (channel < 0 || channel > 15) return;
-	#ifdef PCA8695_DEBUG
+	#ifdef PCA9685_DEBUG
     printf("Channel %u ON\r\n");
 	#endif
 
@@ -251,7 +260,7 @@ void PCA9685_setChannelOn(uint16_t channel) {
 void PCA9685_setChannelOff(uint16_t channel) {
 	if (channel < 0 || channel > 15) return;
 
-	#ifdef PCA8695_DEBUG
+	#ifdef PCA9685_DEBUG
 	printf("Channel %u OFF\r\n");
 	#endif
 
@@ -268,7 +277,7 @@ void PCA9685_setChannelOff(uint16_t channel) {
 void PCA9685_setChannelPWM(uint16_t channel, uint16_t duty_cycle) {
 	if (channel < 0 || channel > 15) return;
 
-	#ifdef PCA8695_DEBUG
+	#ifdef PCA9685_DEBUG
     printf("Channel %u PWM-> %u\r\n",channel,duty_cycle);
 	#endif
 
@@ -291,7 +300,7 @@ void PCA9685_setChannelsPWM(uint16_t starting_channel, uint16_t num_channels, ui
 	if (starting_channel < 0 || starting_channel > 15 || num_channels < 0) return;
     if (starting_channel + num_channels > 16) num_channels -= (starting_channel + num_channels) - 16;
 
-#ifdef PCA8695_DEBUG
+#ifdef PCA9685_DEBUG
     printf("Set channels PWM. numChannels -> %u",num_channels);
 #endif
 
@@ -326,7 +335,7 @@ void PCA9685_setChannelsPWM(uint16_t starting_channel, uint16_t num_channels, ui
  * @return
  */
 void PCA9685_setAllChannelsPWM(uint16_t duty_cycle) {
-	#ifdef PCA8695_DEBUG
+	#ifdef PCA9685_DEBUG
     printf("Set all channels PWM -> %u",duty_cycle);
 #endif
 
@@ -350,14 +359,14 @@ uint16_t PCA9685_getChannelPWM(uint16_t channel) {
 
     uint8_t regAddress = PCA9685_LED0_REG + (channel << 2);
 
-#ifdef PCA8695_DEBUG
+#ifdef PCA9685_DEBUG
     printf("Channel %u regAddress -> 0x%X\r\n",channel,regAddress);
 #endif
 
     i2cWire_beginTransmission(_i2cAddress);
     i2cWire_write(regAddress);
     if (i2cWire_endTransmission()) {
-#ifdef PCA8695_DEBUG
+#ifdef PCA9685_DEBUG
         checkForErrors();
 #endif
         return 0;
@@ -371,7 +380,7 @@ uint16_t PCA9685_getChannelPWM(uint16_t channel) {
         PCA9685_i2c_stop(); // Manually have to send stop bit in software i2c mode
 #endif
         _lastI2CError = 4;
-#ifdef PCA8695_DEBUG
+#ifdef PCA9685_DEBUG
         checkForErrors();
 #endif
         return 0;
@@ -393,7 +402,7 @@ uint16_t PCA9685_getChannelPWM(uint16_t channel) {
     PCA9685_i2c_stop(); // Manually have to send stop bit in software i2c mode
 #endif
 
-#ifdef PCA8695_DEBUG
+#ifdef PCA9685_DEBUG
     printf(" * phaseBegin: %u\r\n",phaseBegin);
     printf(" * phaseEnd: %u\r\n",phaseEnd);
 #endif
@@ -418,7 +427,7 @@ uint16_t PCA9685_getChannelPWM(uint16_t channel) {
         // Section 7.3.3 example 2
         retVal = (phaseEnd + PCA9685_PWM_FULL) - phaseBegin;
 
-#ifdef PCA8695_DEBUG
+#ifdef PCA9685_DEBUG
     printf("retVal: %u\r\n",retVal);
 #endif
 
@@ -478,7 +487,7 @@ void PCA9685_writeChannelBegin(int channel) {
     else
         regAddress = PCA9685_ALLLED_REG;
 
-#ifdef PCA8695_DEBUG
+#ifdef PCA9685_DEBUG
     printf("writeChannelBegin channel -> %u regAddress -> 0x%X\r\n",channel,regAddress);
 #endif
 
@@ -492,7 +501,7 @@ void PCA9685_writeChannelBegin(int channel) {
  * @return
  */
 void PCA9685_writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd) {
-	#ifdef PCA8695_DEBUG
+	#ifdef PCA9685_DEBUG
     printf(" * phaseBegin: %u\r\n",phaseBegin);
     printf(" * phaseEnd: %u\r\n",phaseEnd);
 #endif

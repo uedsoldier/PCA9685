@@ -1,31 +1,32 @@
 /**
   * @file PCA9685.h
-  * @brief Librería para control de módulos i2c-pwm de 16 canales PCA9685
+  * @brief Librería para control de módulos I²C-PWM de 16 canales PCA9685
   * @author Ing. José Roberto Parra Trewartha (uedsoldier1990@gmail.com)
   * @version 1.0
 */
-
-#include <stdint.h>
-#include <stdbool.h>
 
 #ifndef PCA9685_H
 #define PCA9685_H
 
 /**
-  * @brief Macro de selección de módulo i2c a utilizar. El número 0 indica i2c emulado por software.
+ * @brief Número total de dispositivos PCS9685 presentes en el bus I²C. Máximo 6 líneas de direccionamiento, para un total de 62 (2⁶-2) dispositivos.
 */
-#define PCA8695_I2C_MODULE  1
+#define PCA9685_DEVICE_COUNT 1
 
 /**
-  * @brief Macro de selección de modalidad de depuración mediante puerto serie. Comentar en caso de no requerirse esta funcionalidad
+  * @brief Macro de selección de módulo I²C a utilizar. El número 0 indica I²C emulado por software.
 */
-#define PCA8695_DEBUG
+#define PCA9685_I2C_MODULE  1
+
+/**
+  * @brief Macro de selección de modalidad de depuración mediante puerto serie (tanto por hardware como por software). Comentar en caso de no requerirse esta funcionalidad
+*/
+#define PCA9685_DEBUG
 
 /**
  * @brief Macro de frecuencia de oscilador del módulo. Por defecto es 25 [MHz]
  */
-#define PCA8695_OSC_CLOCK 25000000UL  
-
+#define PCA9685_OSC_CLOCK 25000000UL  
 
 /**
  * @brief Canal mínimo para un módulo PCA9685
@@ -33,58 +34,64 @@
 #define PCA9685_MIN_CHANNEL         0
 
 /**
- * @brief Número total de canales para un módulo PCA9685
+ * @brief Número total de canales para un solo módulo PCA9685
  */
 #define PCA9685_CHANNEL_COUNT       16
 
 /**
- * @brief Canal máximo para un módulo PCA9685
+ * @brief Canal máximo para un conjunto de módulos PCA9685 conectados al mismo bus I²C
  */
-#define PCA9685_MAX_CHANNEL         (PCA9685_CHANNEL_COUNT-1)
+#define PCA9685_MAX_CHANNEL         ((PCA9685_DEVICE_COUNT * PCA9685_CHANNEL_COUNT)-1)
 
-/**
- * @brief Valor especial para registros ALLLED
- */
-#define PCA9685_ALLLED_CHANNEL          -1                  
+// Dirección I²C básica del PCA9685, en formato de byte completo. Modo escritura (R/W = 0). Tomar en cuenta sus 6 bits de direccionamiento [A5.0].
+#define PCA9685_I2C_ADDRESS     0x80
 
-//PENDIENTES POR SER DE DIRECCIONAMIENTO
-#define PCA9685_I2C_BASE_MODULE_ADDRESS (uint8_t)0x40
-#define PCA9685_I2C_BASE_MODULE_ADRMASK (uint8_t)0x3F
-#define PCA9685_I2C_BASE_PROXY_ADDRESS  (uint8_t)0xE0
-#define PCA9685_I2C_BASE_PROXY_ADRMASK  (uint8_t)0xFE
+// Dirección I²C general de todos los PCA9685 en el bus, en formato de byte completo. Modo escritura (R/W = 0) 
+#define PCA9685_LED_ALLCALL     0xE0
+
+// Dirección I²C para subdireccionamiento de grupo 1, en formato de byte completo. Modo escritura (R/W = 0) 
+#define PCA9685_SUBADDR_1       0xE2
+
+// Dirección I²C para subdireccionamiento de grupo 2, en formato de byte completo. Modo escritura (R/W = 0) 
+#define PCA9685_SUBADDR_2       0xE4
+
+// Dirección I²C para subdireccionamiento de grupo 3, en formato de byte completo. Modo escritura (R/W = 0) 
+#define PCA9685_SUBADDR_3       0xE8
+
+// Dato I²C para reset de módulos PCA9685 por software (SWRST). Se debe mandar después de direccionar a todos los dispositivos por medio de GENERAL ADDRESS CALL (dirección 0x00 I²C) 
+#define PCA9685_SOFTWARE_RESET  0x06
 
 // Registros internos del PCA9685
-#define PCA9685_MODE1_REG               (uint8_t)0x00
-#define PCA9685_MODE2_REG               (uint8_t)0x01
-#define PCA9685_SUBADR1_REG             (uint8_t)0x02
-#define PCA9685_SUBADR2_REG             (uint8_t)0x03
-#define PCA9685_SUBADR3_REG             (uint8_t)0x04
-#define PCA9685_ALLCALL_REG             (uint8_t)0x05
-#define PCA9685_LED0_REG                (uint8_t)0x06          // Start of LEDx regs, 4B per reg, 2B on phase, 2B off phase, little-endian
-#define PCA9685_PRESCALE_REG            (uint8_t)0xFE
-#define PCA9685_ALLLED_REG              (uint8_t)0xFA
+#define PCA9685_MODE1_REG               0x00    // Registro de modalidad 1
+#define PCA9685_MODE2_REG               0x01    // Registro de modalidad 2
+#define PCA9685_SUBADR1_REG             0x02    // Registro de subdireccionamiento 1
+#define PCA9685_SUBADR2_REG             0x03    // Registro de subdireccionamiento 2
+#define PCA9685_SUBADR3_REG             0x04    // Registro de subdireccionamiento 3
+#define PCA9685_ALLCALL_REG             0x05    // Registro de direccionamiento LED All Call
+#define PCA9685_LED0_REG                0x06    // Inicio de los registros LEDx, 4B per reg, 2B on phase, 2B off phase, formato little-endian
+#define PCA9685_PRESCALE_REG            0xFE
+#define PCA9685_ALLLED_REG              0xFA
 
 // Mode1 register values
-#define PCA9685_MODE1_RESTART           (uint8_t)0x80
-#define PCA9685_MODE1_EXTCLK            (uint8_t)0x40
-#define PCA9685_MODE1_AUTOINC           (uint8_t)0x20
-#define PCA9685_MODE1_SLEEP             (uint8_t)0x10
-#define PCA9685_MODE1_SUBADR1           (uint8_t)0x08
-#define PCA9685_MODE1_SUBADR2           (uint8_t)0x04
-#define PCA9685_MODE1_SUBADR3           (uint8_t)0x02
-#define PCA9685_MODE1_ALLCALL           (uint8_t)0x01
+#define PCA9685_MODE1_RESTART           0x80    // En lectura, muestra el estado de la lógica de RESET. Previamente el usuario.
+#define PCA9685_MODE1_EXTCLK            0x40    // En bajo utiliza reloj interno, en alto usa fuente de reloj externa del pin EXTCLK.
+#define PCA9685_MODE1_AUTOINC           0x20    // Utilización de autoincremento de registros, para lectura o escritura secuencial de registros.
+#define PCA9685_MODE1_SLEEP             0x10    // En bajo, configura en modo normal, mientras que en alto, entra en modo de bajo consumo, desactivando el circuito oscilador.
+#define PCA9685_MODE1_SUBADR1           0x08    // En alto, para que el módulo PCA9685 en cuestión responda al subdireccionamiento 1. En bajo, ignora el subdireccionamiento.
+#define PCA9685_MODE1_SUBADR2           0x04    // En alto, para que el módulo PCA9685 en cuestión responda al subdireccionamiento 2. En bajo, ignora el subdireccionamiento.
+#define PCA9685_MODE1_SUBADR3           0x02    // En alto, para que el módulo PCA9685 en cuestión responda al subdireccionamiento 3. En bajo, ignora el subdireccionamiento.
+#define PCA9685_MODE1_ALLCALL           0x01    // En alto, para que el módulo PCA9685 en cuestión responda a la dirección LED All Call. En bajo, ignora esta dirección.
 
 // Mode2 register values
-#define PCA9685_MODE2_OUTDRV_TPOLE      (uint8_t)0x04
-#define PCA9685_MODE2_INVRT             (uint8_t)0x10
-#define PCA9685_MODE2_OUTNE_TPHIGH      (uint8_t)0x01
-#define PCA9685_MODE2_OUTNE_HIGHZ       (uint8_t)0x02
-#define PCA9685_MODE2_OCH_ONACK         (uint8_t)0x08
+#define PCA9685_MODE2_OUTDRV_TPOLE      0x04    // En alto, salidas configuradas en una arquitectura totem pole, en bajo, se configuran en colector abierto (open-drain)
+#define PCA9685_MODE2_INVRT             0x10    // En alto, la lógica de salida es negada (cuando hay un driver de potencia externo), en bajo la lógica de salida es convencional (cuando no hay driver externo)
+#define PCA9685_MODE2_OUTNE_TPHIGH      0x01
+#define PCA9685_MODE2_OUTNE_HIGHZ       0x02
+#define PCA9685_MODE2_OCH_ONACK         0x08    // En alto, las salidas cambian de estado cuando se presenta ACK, mientras que en bajo cambian en la condición STOP
 
-#define PCA9685_SW_RESET                (uint8_t)0x06          // Sent to address 0x00 to reset all devices on Wire line
+//
 #define PCA9685_PWM_FULL                (uint16_t)0x1000    // Special value for full on/full off LEDx modes
 #define PCA9685_PWM_MASK                (uint16_t)0x0FFF    // Mask for 12-bit/4096 possible phase positions
-
 
 /**
  * @brief Enumeración de modo de control del driver de salida. Para mayor información, consultar la tabla 12 de la hoja de datos y las figuras 13, 14 y 15 sobre
@@ -161,19 +168,44 @@ typedef enum PCA9685_PhaseBalancer {
     PCA9685_PhaseBalancer_Undefined = -1  // Para uso interno únicamente
 } PCA9685_PhaseBalancer;
 
+
+
+
+
+
+
+
+/**
+ * @brief Valor especial para registros ALLLED PENDIENTE
+ */
+#define PCA9685_ALLLED_CHANNEL          -1  
+
+
+
+
+
+//PENDIENTES POR SER DE DIRECCIONAMIENTO
+#define PCA9685_I2C_BASE_MODULE_ADDRESS (uint8_t)0x40
+#define PCA9685_I2C_BASE_MODULE_ADRMASK (uint8_t)0x3F
+#define PCA9685_I2C_BASE_PROXY_ADDRESS  (uint8_t)0xE0
+#define PCA9685_I2C_BASE_PROXY_ADRMASK  (uint8_t)0xFE
+
+
+PCA9685_OutputDriverMode PCA9685_getOutputDriverMode();
+PCA9685_OutputEnabledMode PCA9685_getOutputEnabledMode();
+PCA9685_OutputDisabledMode PCA9685_getOutputDisabledMode();
+PCA9685_ChannelUpdateMode PCA9685_getChannelUpdateMode();
+PCA9685_PhaseBalancer PCA9685_getPhaseBalancer();
+
 /**
  * Prototipos de funciones
  */
-void PCA9685_init(uint8_t add, uint8_t mode);
-void PCA9685_resetDevices(void);
+void PCA9685_init(uint8_t address, uint8_t mode);
+void PCA9685_resetDevices();
 
-PCA9685_OutputDriverMode getOutputDriverMode(void);
-PCA9685_OutputEnabledMode getOutputEnabledMode(void);
-PCA9685_OutputDisabledMode getOutputDisabledMode(void);
-PCA9685_ChannelUpdateMode getChannelUpdateMode(void);
-PCA9685_PhaseBalancer getPhaseBalancer(void);
 
-void PCA9685_setPWMFrequency(float pwm_freq);
+// Funciones de establecimiento de condiciones de operación 
+void PCA9685_setFrequency(float pwm_freq);
 void PCA9685_setChannelOn(uint16_t channel);
 void PCA9685_setChannelOff(uint16_t channel);    
 void PCA9685_setChannelPWM(uint16_t channel, uint16_t duty_cycle);
@@ -181,18 +213,20 @@ void PCA9685_setChannelsPWM(uint16_t starting_channel, uint16_t num_channels, ui
 void PCA9685_setAllChannelsPWM(uint16_t duty_cycle);
 uint16_t PCA9685_getChannelPWM(uint16_t channel);
 
-
-void getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd);
-void writeChannelBegin(int channel);
-void writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd);
-void writeChannelEnd(void);
-
-
+// Funciones básicas de comunicación I²C
 void PCA9685_i2c_start();
 void PCA9685_i2c_stop();
 void PCA9685_i2c_restart();
 void PCA9685_i2c_writeByte(uint8_t dato);
 uint8_t PCA9685_i2c_readByte(bool ack);
+
+void PCA9685_getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd);
+void PCA9685_writeChannelBegin(int channel);
+void PCA9685_writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd);
+void PCA9685_writeChannelEnd();
+
+
+
 
 
 void PCA9685_writeRegister(uint8_t reg, uint8_t val);
@@ -202,7 +236,7 @@ uint8_t PCA9685_readRegister(uint8_t reg);
 /**
  * Variables internas
  */
-static uint8_t _i2cAddress;                                       // Module's i2c address (default: B000000) PENDIENTE
+static uint8_t _i2cAddress;                                   // Module's i2c address (default: B000000) PENDIENTE
 static PCA9685_OutputDriverMode _driverMode;                  // Modo de driver de salida Output driver mode
 static PCA9685_OutputEnabledMode _enabledMode;                // Modo de salida OE enabled
 static PCA9685_OutputDisabledMode _disabledMode;              // Mode de salida OE disabled
