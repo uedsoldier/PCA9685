@@ -103,11 +103,10 @@
  * También de la hoja de datos, Sección 10. sección 5: "en la arquitectura push-pull hay una ruta de baja resistencia a GND a través del Zener y esto [hace que] el CI se sobrecaliente ".
  */
 typedef enum PCA9685_OutputDriverMode {
-    PCA9685_OutputDriverMode_OpenDrain,         // Salidas del módulo configuradas en drenaje abierto (open-drain) con un límite de 400[mA] @5[V] de corriente en sumidero (sink), útil para LEDs y servomotores de baja potencia
-    PCA9685_OutputDriverMode_TotemPole,         // Salidas del módulo configuradas en totem-pole (aka push-pull) con un límite de 400[mA] @5[V] de corriente en sumidero (sink) y 160[mA] de corriente suministrada (source), útil para drivers externos (default)
-
-    PCA9685_OutputDriverMode_Count,             // Para uso interno únicamente
-    PCA9685_OutputDriverMode_Undefined = -1     // Para uso interno únicamente
+    PCA9685_OutputDriverMode_OpenDrain,         // Salidas del módulo configuradas en drenaje abierto (open-drain) con un límite de 400[mA] @5[V] de corriente en sumidero (sink), útil para LEDs y servomotores de baja potencia.
+    PCA9685_OutputDriverMode_TotemPole,         // Salidas del módulo configuradas en totem-pole (aka push-pull) con un límite de 400[mA] @5[V] de corriente en sumidero (sink) y 160[mA] de corriente suministrada (source), útil para drivers externos (por defecto).
+    PCA9685_OutputDriverMode_Count,             // Para uso interno únicamente.
+    PCA9685_OutputDriverMode_Undefined = -1     // Para uso interno únicamente.
 } PCA9685_OutputDriverMode;
 
 /**
@@ -121,11 +120,11 @@ typedef enum PCA9685_OutputDriverMode {
  * para obtener información sobre la instalación un condensador de desacoplamiento si surge la necesidad.
  */
 typedef enum PCA9685_OutputEnabledMode {
-    PCA9685_OutputEnabledMode_Normal,     // Cuando OE está habilitado/LOW, los canales emiten una señal normal, útil para controladores externos de tipo N (predeterminado)
-    PCA9685_OutputEnabledMode_Inverted,   // Cuando OE está habilitado/LOW, los canales emiten una señal invertida, útil para controladores externos de tipo P o conexión directa
+    PCA9685_OutputEnabledMode_Normal,     // Cuando OE está habilitado/LOW, los canales emiten una señal normal, útil para controladores externos de tipo N (predeterminado).
+    PCA9685_OutputEnabledMode_Inverted,   // Cuando OE está habilitado/LOW, los canales emiten una señal invertida, útil para controladores externos de tipo P o conexión directa.
 
-    PCA9685_OutputEnabledMode_Count,            // Para uso interno únicamente
-    PCA9685_OutputEnabledMode_Undefined = -1    // Para uso interno únicamente
+    PCA9685_OutputEnabledMode_Count,            // Para uso interno únicamente.
+    PCA9685_OutputEnabledMode_Undefined = -1    // Para uso interno únicamente.
 } PCA9685_OutputEnabledMode;
 
 /**
@@ -133,23 +132,23 @@ typedef enum PCA9685_OutputEnabledMode {
  * @note El pin Active-low-OE se usa generalmente para sincronizar múltiples dispositivos PCA9685, pero también se puede usar como una señal de control de atenuación externa (dimming).
  */
 typedef enum PCA9685_OutputDisabledMode {
-    PCA9685_OutputDisabledMode_Low,          // Cuando OE está deshabilitado/HIGH, los canales emiten una señal baja (predeterminado)
-    PCA9685_OutputDisabledMode_High,        // Cuando OE está deshabilitado/HIGH, los canales emiten una señal alta (solo disponible en modo totem-pole)
-    PCA9685_OutputDisabledMode_Floating,    // Cuando OE está deshabilitado/HIGH, las salidas de canal pasan a un estado flotante (alta impedancia), que puede refinarse aún más mediante resistencias externas pull-up / pull-down
+    PCA9685_OutputDisabledMode_Low,          // Cuando OE está deshabilitado/HIGH, los canales emiten una señal baja (predeterminado).
+    PCA9685_OutputDisabledMode_High,        // Cuando OE está deshabilitado/HIGH, los canales emiten una señal alta (solo disponible en modo totem-pole).
+    PCA9685_OutputDisabledMode_Floating,    // Cuando OE está deshabilitado/HIGH, las salidas de canal pasan a un estado flotante (alta impedancia), que puede refinarse aún más mediante resistencias externas pull-up / pull-down.
 
-    PCA9685_OutputDisabledMode_Count,           // Para uso interno únicamente
-    PCA9685_OutputDisabledMode_Undefined = -1   // Para uso interno únicamente
+    PCA9685_OutputDisabledMode_Count,           // Para uso interno únicamente.
+    PCA9685_OutputDisabledMode_Undefined = -1   // Para uso interno únicamente.
 } PCA9685_OutputDisabledMode;
 
 /**
  * @brief Estrategia de actualización de canales utilizada cuando se actualizan varios canales simultáneamente.
  */
 typedef enum PCA9685_ChannelUpdateMode {
-  PCA9685_ChannelUpdateMode_AfterStop,          // Las actualizaciones del canal se confirman después de la señal de STOP de transmisión completa (predeterminado)
-  PCA9685_ChannelUpdateMode_AfterAck,           // Las actualizaciones de canal se confirman después de la señal ACK de actualización de canal individual
+  PCA9685_ChannelUpdateMode_AfterStop,          // Las actualizaciones del canal se confirman después de la señal de STOP de transmisión completa (predeterminado).
+  PCA9685_ChannelUpdateMode_AfterAck,           // Las actualizaciones de canal se confirman después de la señal ACK de actualización de canal individual.
 
-  PCA9685_ChannelUpdateMode_Count,              // Para uso interno únicamente
-   PCA9685_ChannelUpdateMode_Undefined = -1     // Para uso interno únicamente
+  PCA9685_ChannelUpdateMode_Count,              // Para uso interno únicamente.
+   PCA9685_ChannelUpdateMode_Undefined = -1     // Para uso interno únicamente.
 } PCA9685_ChannelUpdateMode;
 
 /**
@@ -161,11 +160,10 @@ typedef enum PCA9685_ChannelUpdateMode {
  * cierto punto. Si bien es posible que se revise esta idea en el futuro, por ahora estamos contentos dejando None como predeterminado y limitando el cambio que aplica la opción Linear.
  */
 typedef enum PCA9685_PhaseBalancer {
-    PCA9685_PhaseBalancer_None,       // Deshabilita el equilibrio de fase basado en software, confiando en el hardware instalado para manejar la corriente entrante (sink) (predeterminado)
-    PCA9685_PhaseBalancer_Linear,     // Utiliza un equilibrio de fase lineal basado en software, con cada canal a 16 pasos preestablecidos (fuera del rango de valores de 4096/12 bits) del canal anterior (puede causar parpadeo de LED / ciclos saltados en cambios de PWM)
-
-    PCA9685_PhaseBalancer_Count,          // Para uso interno únicamente
-    PCA9685_PhaseBalancer_Undefined = -1  // Para uso interno únicamente
+    PCA9685_PhaseBalancer_None,       // Deshabilita el equilibrio de fase basado en software, confiando en el hardware instalado para manejar la corriente entrante (sink) (predeterminado).
+    PCA9685_PhaseBalancer_Linear,     // Utiliza un equilibrio de fase lineal basado en software, con cada canal a 16 pasos preestablecidos (fuera del rango de valores de 4096/12 bits) del canal anterior (puede causar parpadeo de LED / ciclos saltados en cambios de PWM).
+    PCA9685_PhaseBalancer_Count,          // Para uso interno únicamente.
+    PCA9685_PhaseBalancer_Undefined = -1  // Para uso interno únicamente.
 } PCA9685_PhaseBalancer;
 
 
@@ -191,59 +189,68 @@ typedef enum PCA9685_PhaseBalancer {
 #define PCA9685_I2C_BASE_PROXY_ADRMASK  (uint8_t)0xFE
 
 
-PCA9685_OutputDriverMode PCA9685_getOutputDriverMode();
-PCA9685_OutputEnabledMode PCA9685_getOutputEnabledMode();
-PCA9685_OutputDisabledMode PCA9685_getOutputDisabledMode();
-PCA9685_ChannelUpdateMode PCA9685_getChannelUpdateMode();
-PCA9685_PhaseBalancer PCA9685_getPhaseBalancer();
+PCA9685_OutputDriverMode PCA9685_getOutputDriverMode(PCA9685* modulo);
+PCA9685_OutputEnabledMode PCA9685_getOutputEnabledMode(PCA9685* modulo);
+PCA9685_OutputDisabledMode PCA9685_getOutputDisabledMode(PCA9685* modulo);
+PCA9685_ChannelUpdateMode PCA9685_getChannelUpdateMode(PCA9685* modulo);
+PCA9685_PhaseBalancer PCA9685_getPhaseBalancer(PCA9685* modulo);
 
 /**
  * Prototipos de funciones
  */
-void PCA9685_init(uint8_t address, uint8_t mode);
+void PCA9685_init(PCA9685 *modulo, uint8_t address);
 void PCA9685_resetDevices();
 
 
 // Funciones de establecimiento de condiciones de operación 
-void PCA9685_setFrequency(float pwm_freq);
-void PCA9685_setChannelOn(uint16_t channel);
-void PCA9685_setChannelOff(uint16_t channel);    
-void PCA9685_setChannelPWM(uint16_t channel, uint16_t duty_cycle);
-void PCA9685_setChannelsPWM(uint16_t starting_channel, uint16_t num_channels, uint16_t *duty_cycles);
-void PCA9685_setAllChannelsPWM(uint16_t duty_cycle);
-uint16_t PCA9685_getChannelPWM(uint16_t channel);
+void PCA9685_setFrequency(PCA9685* modulo, float pwm_freq);
+void PCA9685_setChannelOn(PCA9685* modulo, uint8_t channel);
+void PCA9685_setChannelOff(PCA9685* modulo, uint8_t channel);    
+void PCA9685_setChannelPWM(PCA9685* modulo, uint8_t channel, uint16_t duty_cycle);
+void PCA9685_setChannelsPWM(PCA9685* modulo, uint8_t starting_channel, uint8_t num_channels, uint16_t *duty_cycles);
+void PCA9685_setAllChannelsPWM(PCA9685* modulo, uint16_t duty_cycle);
+uint16_t PCA9685_getChannelPWM(PCA9685* modulo, uint8_t channel);
 
 // Funciones básicas de comunicación I²C
-void PCA9685_i2c_start();
-void PCA9685_i2c_stop();
-void PCA9685_i2c_restart();
-void PCA9685_i2c_writeByte(uint8_t dato);
-uint8_t PCA9685_i2c_readByte(bool ack);
+inline void PCA9685_i2c_start();
+inline void PCA9685_i2c_stop();
+inline void PCA9685_i2c_restart();
+inline void PCA9685_i2c_writeByte(uint8_t dato);
+inline uint8_t PCA9685_i2c_readByte(bool ack);
 
-void PCA9685_getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd);
-void PCA9685_writeChannelBegin(int channel);
-void PCA9685_writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd);
-void PCA9685_writeChannelEnd();
-
-
+void PCA9685_getPhaseCycle(PCA9685* modulo, uint8_t channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd);
+void PCA9685_writeChannelBegin(PCA9685* modulo, uint8_t channel);
+void PCA9685_writeChannelPWM(PCA9685* modulo, uint16_t phaseBegin, uint16_t phaseEnd);
+void PCA9685_writeChannelEnd(PCA9685* modulo);
 
 
 
-void PCA9685_writeRegister(uint8_t reg, uint8_t val);
-uint8_t PCA9685_readRegister(uint8_t reg);
+
+
+void PCA9685_writeRegister(PCA9685* modulo, uint8_t reg, uint8_t val);
+uint8_t PCA9685_readRegister(PCA9685* modulo, uint8_t reg);
 
 
 /**
  * Variables internas
  */
-static uint8_t _i2cAddress;                                   // Module's i2c address (default: B000000) PENDIENTE
-static PCA9685_OutputDriverMode _driverMode;                  // Modo de driver de salida Output driver mode
-static PCA9685_OutputEnabledMode _enabledMode;                // Modo de salida OE enabled
-static PCA9685_OutputDisabledMode _disabledMode;              // Mode de salida OE disabled
-static PCA9685_ChannelUpdateMode _updateMode;                 // Modo de actualización de canales
-static PCA9685_PhaseBalancer _phaseBalancer;                  // Esquema de balanceo de fases
-static bool _isProxyAddresser;                                // Bandera de direccionamiento Proxy (deshabilita algunas funcionalidades)
-static uint8_t _lastI2CError;                                        // Last module i2c error PENDIENTE
+
+/**
+ * @brief Estructura de datos de tipo PCA9685, para cada módulo o familia de módulos a utilizar (subdireccionamiento o direccionamiento global LED All Call)
+ */
+typedef struct PCA9685{
+  uint8_t i2cAddress;                         // Dirección I²C del módulo
+  PCA9685_OutputDriverMode driverMode;        // Modo de driver de salida Output driver mode
+  PCA9685_OutputEnabledMode enabledMode;      // Modo de salida OE enabled
+  PCA9685_OutputDisabledMode disabledMode;    // Mode de salida OE disabled
+  PCA9685_ChannelUpdateMode updateMode;       // Modo de actualización de canales
+  PCA9685_PhaseBalancer phaseBalancer;        // Esquema de balanceo de fases
+  bool isProxyAddresser;                      // Bandera de direccionamiento Proxy (deshabilita algunas funcionalidades)
+  uint8_t lastI2CError;                       // Last module i2c error PENDIENTE
+
+} PCA9685;
+
+
 
 
 
