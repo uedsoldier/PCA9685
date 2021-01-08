@@ -237,6 +237,9 @@ void PCA9685_setChannelPWM(PCA9685 *modulo, uint8_t channel, uint16_t duty_cycle
 void PCA9685_setChannelsPWM(PCA9685 *modulo, uint8_t starting_channel, uint8_t num_channels, uint16_t *duty_cycles);
 void PCA9685_setAllChannelsPWM(PCA9685 *modulo, uint16_t duty_cycle);
 uint16_t PCA9685_getChannelPWM(PCA9685 *modulo, uint8_t channel);
+void PCA9685_getPhaseCycle(PCA9685 *modulo, uint8_t channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd);
+void PCA9685_writeChannelBegin(PCA9685 *modulo, uint8_t channel);
+void PCA9685_writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd);
 
 // Funciones de configuración
 PCA9685_OutputDriverMode PCA9685_getOutputDriverMode(PCA9685 *modulo);
@@ -252,11 +255,6 @@ inline void PCA9685_i2c_stop();
 inline void PCA9685_i2c_restart();
 inline uint8_t PCA9685_i2c_writeByte(uint8_t dato);
 inline uint8_t PCA9685_i2c_readByte(bool ack);
-
-void PCA9685_getPhaseCycle(PCA9685 *modulo, uint8_t channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd);
-void PCA9685_writeChannelBegin(PCA9685 *modulo, uint8_t channel);
-void PCA9685_writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd);
-
 
 //
 
