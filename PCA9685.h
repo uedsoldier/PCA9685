@@ -23,6 +23,10 @@
 */
 #define PCA9685_DEBUG
 
+
+// Uncomment or -D this define to swap PWM low(begin)/high(end) phase values in register reads/writes (needed for some chip manufacturers).
+//#define PCA9685_SWAP_PWM_BEG_END_REGS
+
 /**
  * @brief Macro de frecuencia de oscilador del módulo. Por defecto es 25 [MHz]
  */
@@ -58,7 +62,10 @@
 // Dirección I²C para subdireccionamiento de grupo 3, en formato de byte completo. Modo escritura (R/W = 0) 
 #define PCA9685_SUBADDR_3       0xE8
 
-// Dato I²C para reset de módulos PCA9685 por software (SWRST). Se debe mandar después de direccionar a todos los dispositivos por medio de GENERAL ADDRESS CALL (dirección 0x00 I²C) 
+// Dirección para todos los dispositivos en el bus I²C 
+#define PCA9685_GENERAL_CALL_ADDRESS    0x00
+
+// Dato I²C para reset de módulos PCA9685 por software (SWRST). Se debe mandar después de direccionar a todos los dispositivos por medio de GENERAL CALL ADDRESS (dirección 0x00 I²C) 
 #define PCA9685_SOFTWARE_RESET  0x06
 
 // Registros internos del PCA9685
@@ -122,7 +129,6 @@ typedef enum PCA9685_OutputDriverMode {
 typedef enum PCA9685_OutputEnabledMode {
     PCA9685_OutputEnabledMode_Normal,     // Cuando OE está habilitado/LOW, los canales emiten una señal normal, útil para controladores externos de tipo N (predeterminado).
     PCA9685_OutputEnabledMode_Inverted,   // Cuando OE está habilitado/LOW, los canales emiten una señal invertida, útil para controladores externos de tipo P o conexión directa.
-
     PCA9685_OutputEnabledMode_Count,            // Para uso interno únicamente.
     PCA9685_OutputEnabledMode_Undefined = -1    // Para uso interno únicamente.
 } PCA9685_OutputEnabledMode;
@@ -144,11 +150,10 @@ typedef enum PCA9685_OutputDisabledMode {
  * @brief Estrategia de actualización de canales utilizada cuando se actualizan varios canales simultáneamente.
  */
 typedef enum PCA9685_ChannelUpdateMode {
-  PCA9685_ChannelUpdateMode_AfterStop,          // Las actualizaciones del canal se confirman después de la señal de STOP de transmisión completa (predeterminado).
-  PCA9685_ChannelUpdateMode_AfterAck,           // Las actualizaciones de canal se confirman después de la señal ACK de actualización de canal individual.
-
-  PCA9685_ChannelUpdateMode_Count,              // Para uso interno únicamente.
-   PCA9685_ChannelUpdateMode_Undefined = -1     // Para uso interno únicamente.
+    PCA9685_ChannelUpdateMode_AfterStop,          // Las actualizaciones del canal se confirman después de la señal de STOP de transmisión completa (predeterminado).
+    PCA9685_ChannelUpdateMode_AfterAck,           // Las actualizaciones de canal se confirman después de la señal ACK de actualización de canal individual.
+    PCA9685_ChannelUpdateMode_Count,              // Para uso interno únicamente.
+    PCA9685_ChannelUpdateMode_Undefined = -1     // Para uso interno únicamente.
 } PCA9685_ChannelUpdateMode;
 
 /**
@@ -166,80 +171,12 @@ typedef enum PCA9685_PhaseBalancer {
     PCA9685_PhaseBalancer_Undefined = -1  // Para uso interno únicamente.
 } PCA9685_PhaseBalancer;
 
-
-
-
-
-
-
-
-/**
- * @brief Valor especial para registros ALLLED PENDIENTE
- */
-#define PCA9685_ALLLED_CHANNEL          -1  
-
-
-
-
-
-//PENDIENTES POR SER DE DIRECCIONAMIENTO
-#define PCA9685_I2C_BASE_MODULE_ADDRESS (uint8_t)0x40
-#define PCA9685_I2C_BASE_MODULE_ADRMASK (uint8_t)0x3F
-#define PCA9685_I2C_BASE_PROXY_ADDRESS  (uint8_t)0xE0
-#define PCA9685_I2C_BASE_PROXY_ADRMASK  (uint8_t)0xFE
-
-
-PCA9685_OutputDriverMode PCA9685_getOutputDriverMode(PCA9685* modulo);
-PCA9685_OutputEnabledMode PCA9685_getOutputEnabledMode(PCA9685* modulo);
-PCA9685_OutputDisabledMode PCA9685_getOutputDisabledMode(PCA9685* modulo);
-PCA9685_ChannelUpdateMode PCA9685_getChannelUpdateMode(PCA9685* modulo);
-PCA9685_PhaseBalancer PCA9685_getPhaseBalancer(PCA9685* modulo);
-
-/**
- * Prototipos de funciones
- */
-void PCA9685_init(PCA9685 *modulo, uint8_t address);
-void PCA9685_resetDevices();
-
-
-// Funciones de establecimiento de condiciones de operación 
-void PCA9685_setFrequency(PCA9685* modulo, float pwm_freq);
-void PCA9685_setChannelOn(PCA9685* modulo, uint8_t channel);
-void PCA9685_setChannelOff(PCA9685* modulo, uint8_t channel);    
-void PCA9685_setChannelPWM(PCA9685* modulo, uint8_t channel, uint16_t duty_cycle);
-void PCA9685_setChannelsPWM(PCA9685* modulo, uint8_t starting_channel, uint8_t num_channels, uint16_t *duty_cycles);
-void PCA9685_setAllChannelsPWM(PCA9685* modulo, uint16_t duty_cycle);
-uint16_t PCA9685_getChannelPWM(PCA9685* modulo, uint8_t channel);
-
-// Funciones básicas de comunicación I²C
-inline void PCA9685_i2c_start();
-inline void PCA9685_i2c_stop();
-inline void PCA9685_i2c_restart();
-inline void PCA9685_i2c_writeByte(uint8_t dato);
-inline uint8_t PCA9685_i2c_readByte(bool ack);
-
-void PCA9685_getPhaseCycle(PCA9685* modulo, uint8_t channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd);
-void PCA9685_writeChannelBegin(PCA9685* modulo, uint8_t channel);
-void PCA9685_writeChannelPWM(PCA9685* modulo, uint16_t phaseBegin, uint16_t phaseEnd);
-void PCA9685_writeChannelEnd(PCA9685* modulo);
-
-
-
-
-
-void PCA9685_writeRegister(PCA9685* modulo, uint8_t reg, uint8_t val);
-uint8_t PCA9685_readRegister(PCA9685* modulo, uint8_t reg);
-
-
-/**
- * Variables internas
- */
-
 /**
  * @brief Estructura de datos de tipo PCA9685, para cada módulo o familia de módulos a utilizar (subdireccionamiento o direccionamiento global LED All Call)
  */
 typedef struct PCA9685{
-  uint8_t i2cAddress;                         // Dirección I²C del módulo
+  uint8_t i2cAddress_w;                       // Dirección I²C del módulo en modo escritura
+  uint8_t i2cAddress_r;                       // Dirección I²C del módulo en modo lectura
   PCA9685_OutputDriverMode driverMode;        // Modo de driver de salida Output driver mode
   PCA9685_OutputEnabledMode enabledMode;      // Modo de salida OE enabled
   PCA9685_OutputDisabledMode disabledMode;    // Mode de salida OE disabled
@@ -247,13 +184,105 @@ typedef struct PCA9685{
   PCA9685_PhaseBalancer phaseBalancer;        // Esquema de balanceo de fases
   bool isProxyAddresser;                      // Bandera de direccionamiento Proxy (deshabilita algunas funcionalidades)
   uint8_t lastI2CError;                       // Last module i2c error PENDIENTE
-
+  char device_name[16];                       // Nombre del dispositivo (opcional)
 } PCA9685;
 
+/**
+ * Macros de ciclos de trabajo comunes
+ */
+#define PCA9685_DUTY_25     1024
+#define PCA9685_DUTY_50     2048    
+#define PCA9685_DUTY_75     3072
+
+
+/**
+ * @brief Valor especial para registros ALLLED PENDIENTE
+ */
+#define PCA9685_ALLLED_CHANNEL          (-1)
 
 
 
+//PENDIENTES POR SER DE DIRECCIONAMIENTO
+//#define PCA9685_I2C_BASE_MODULE_ADDRESS 0x40
+//#define PCA9685_I2C_BASE_MODULE_ADRMASK 0x3F
+//#define PCA9685_I2C_BASE_PROXY_ADDRESS  0xE0
+//#define PCA9685_I2C_BASE_PROXY_ADRMASK  0xFE
 
+
+/**
+ * Prototipos de funciones
+ */
+// Funciones básicas
+void PCA9685_init(PCA9685 *modulo, uint8_t address);
+
+#ifdef PCA9685_DEBUG
+void PCA9685_printDeviceDetails(PCA9685 *modulo);
+#endif
+
+void PCA9685_resetDevices(void);
+bool PCA9685_isConnected(PCA9685 *modulo);
+
+char *PCA9685_getDeviceName(PCA9685 *modulo);
+void PCA9685_setDeviceName(PCA9685 *modulo, const char *name);
+
+// Funciones de lectura/escritura de registros del PCA9685
+void PCA9685_writeRegister(PCA9685 *modulo, uint8_t reg, uint8_t val);
+uint8_t PCA9685_readRegister(PCA9685 *modulo, uint8_t reg);
+
+// Funciones de establecimiento de condiciones de operación 
+void PCA9685_setFrequency(PCA9685 *modulo, float pwm_freq);
+void PCA9685_setChannelOn(PCA9685 *modulo, uint8_t channel);
+void PCA9685_setChannelOff(PCA9685 *modulo, uint8_t channel);    
+void PCA9685_setChannelPWM(PCA9685 *modulo, uint8_t channel, uint16_t duty_cycle);
+void PCA9685_setChannelsPWM(PCA9685 *modulo, uint8_t starting_channel, uint8_t num_channels, uint16_t *duty_cycles);
+void PCA9685_setAllChannelsPWM(PCA9685 *modulo, uint16_t duty_cycle);
+uint16_t PCA9685_getChannelPWM(PCA9685 *modulo, uint8_t channel);
+
+// Funciones de configuración
+PCA9685_OutputDriverMode PCA9685_getOutputDriverMode(PCA9685 *modulo);
+PCA9685_OutputEnabledMode PCA9685_getOutputEnabledMode(PCA9685 *modulo);
+PCA9685_OutputDisabledMode PCA9685_getOutputDisabledMode(PCA9685 *modulo);
+PCA9685_ChannelUpdateMode PCA9685_getChannelUpdateMode(PCA9685 *modulo);
+PCA9685_PhaseBalancer PCA9685_getPhaseBalancer(PCA9685 *modulo);
+
+
+// Funciones básicas de comunicación I²C
+inline void PCA9685_i2c_start();
+inline void PCA9685_i2c_stop();
+inline void PCA9685_i2c_restart();
+inline uint8_t PCA9685_i2c_writeByte(uint8_t dato);
+inline uint8_t PCA9685_i2c_readByte(bool ack);
+
+void PCA9685_getPhaseCycle(PCA9685 *modulo, uint8_t channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd);
+void PCA9685_writeChannelBegin(PCA9685 *modulo, uint8_t channel);
+void PCA9685_writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd);
+
+
+//
+
+#ifdef PCA9685_DEBUG
+static const char PCA9685_outputDriverMode_0[] = "open drain";
+static const char PCA9685_outputDriverMode_1[] = "totem-pole (default)";
+static const char * const PCA9685_outputDriverMode_str_P[] = {PCA9685_outputDriverMode_0,PCA9685_outputDriverMode_1};
+
+static const char PCA9685_outputEnabledMode_0[] = "normal (default)";
+static const char PCA9685_outputEnabledMode_1[] = "inverted";
+static const char * const PCA9685_outputEnabledMode_str_P[] = {PCA9685_outputEnabledMode_0,PCA9685_outputEnabledMode_1};
+
+static const char PCA9685_outputDisabledMode_0[] = "low (default)";
+static const char PCA9685_outputDisabledMode_1[] = "high";
+static const char PCA9685_outputDisabledMode_2[] = "floating";
+static const char * const PCA9685_outputDisabledMode_str_P[] = {PCA9685_outputDisabledMode_0,PCA9685_outputDisabledMode_1,PCA9685_outputDisabledMode_2};
+
+static const char PCA9685_channelUpdateMode_0[] = "after stop (default)";
+static const char PCA9685_channelUpdateMode_1[] = "after ack";
+static const char * const PCA9685_channelUpdateMode_str_P[] = {PCA9685_channelUpdateMode_0,PCA9685_channelUpdateMode_1};
+
+static const char PCA9685_phaseBalancer_0[] = "none (default)";
+static const char PCA9685_phaseBalancer_1[] = "linear";
+static const char * const PCA9685_phaseBalancer_str_P[] = {PCA9685_phaseBalancer_0,PCA9685_phaseBalancer_1};
+
+#endif
 
 
 #endif  /*PCA9685_h*/
