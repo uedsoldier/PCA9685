@@ -179,9 +179,9 @@ uint8_t PCA9685_readRegister(PCA9685 *modulo, uint8_t reg){
  * @brief Función de inicialización de un módulo PCA9685 individualmente (por direccionamiento directo mediante los pines [A5..0])
  * @param modulo (PCA9685*) Apuntador a estructura de datos de tipo PCA9685
  * @param address (uint8_t) Direccionamiento físico del módulo
- * @return
+ * @return (bool) True en caso de inicializacion correcta, false en caso contrarooi
  */
-void PCA9685_init(PCA9685 *modulo, uint8_t address) {
+bool PCA9685_init(PCA9685 *modulo, uint8_t address) {
     if(PCA9685_isConnected(modulo)) {
         modulo->i2cAddress_w = (PCA9685_I2C_ADDRESS|address);
         modulo->i2cAddress_r = (modulo->i2cAddress_w|0x01);
@@ -197,11 +197,13 @@ void PCA9685_init(PCA9685 *modulo, uint8_t address) {
         printf("PCA9685 init OK\r\n");
         PCA9685_printDeviceDetails(modulo);
     #endif
+        return true;
     }
     else{
         #ifdef PCA9685_DEBUG
         printf("PCA9685 not present. Verify i2c bus.\r\n");
-    #endif
+        #endif
+        return false;
     }
     
     
