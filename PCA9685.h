@@ -213,7 +213,7 @@ typedef struct PCA9685{
  * Prototipos de funciones
  */
 // Funciones básicas
-void PCA9685_init(PCA9685 *modulo, uint8_t address);
+bool PCA9685_init(PCA9685 *modulo, uint8_t address);
 
 #ifdef PCA9685_DEBUG
 void PCA9685_printDeviceDetails(PCA9685 *modulo);
