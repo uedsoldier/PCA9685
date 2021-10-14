@@ -1,3 +1,2 @@
-Manejo de driver PWM PCA9685
-Compilador: XC8 (Microchip)
+Manejo de driver I²C->PWM PCA9685 de 16 canales
 Aún en desarrollo

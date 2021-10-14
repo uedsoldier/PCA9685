@@ -14,21 +14,21 @@
 #define PCA9685_DEVICE_COUNT 1
 
 /**
-  * @brief Macro de selección de módulo I²C a utilizar. El número 0 indica I²C emulado por software.
+  * @brief Macro de selección de módulo I²C a utilizar. El número -1 indica I²C emulado por software si se encuentra soportado por la plataforma de hardware
 */
 #define PCA9685_I2C_MODULE  1
 
 /**
-  * @brief Macro de selección de modalidad de depuración mediante puerto serie (tanto por hardware como por software). Comentar en caso de no requerirse esta funcionalidad
+  * @brief Macro de selección de modalidad de depuración mediante puerto serie (tanto por hardware como por software) o por terminal. Definir en 0 en caso de no requerirse esta funcionalidad
 */
-#define PCA9685_DEBUG
+#define PCA9685_DEBUG 1
 
 
-// Uncomment or -D this define to swap PWM low(begin)/high(end) phase values in register reads/writes (needed for some chip manufacturers).
+// Descomentar esta definición para intercambiar los valores de fase baja (inicial) / alta (final) de PWM en lecturas / escrituras de registro (necesario para algunos fabricantes de chips).
 //#define PCA9685_SWAP_PWM_BEG_END_REGS
 
 /**
- * @brief Macro de frecuencia de oscilador del módulo. Por defecto es 25 [MHz]
+ * @brief Macro de frecuencia de oscilador del módulo. Por defecto es 25 [MHz], aunque puede cambiarse si se hace uso del pin
  */
 #define PCA9685_OSC_CLOCK 25000000UL  
 
