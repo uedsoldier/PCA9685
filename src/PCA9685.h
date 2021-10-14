@@ -8,13 +8,34 @@
 #ifndef PCA9685_H
 #define PCA9685_H
 
+// Dependencias
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#ifdef __XC8
+#include <xc.h>
+#include "../../pconfig.h"
+#endif
+
+#if PCA9685_I2C_MODULE == -1
+#include "../../emulated_protocols/I2C_SW/i2c_sw.h"
+#else
+#include "../../peripherals/I2C/i2c.h"
+#endif
+
+#include "../../utils/utils.h"
+
 /**
  * @brief Número total de dispositivos PCS9685 presentes en el bus I²C. Máximo 6 líneas de direccionamiento, para un total de 62 (2⁶-2) dispositivos.
 */
 #define PCA9685_DEVICE_COUNT 1
 
 /**
-  * @brief Macro de selección de módulo I²C a utilizar. El número -1 indica I²C emulado por software si se encuentra soportado por la plataforma de hardware
+  * @brief Macro de selección de módulo I²C a utilizar.
+  * Para microcontroladores PIC de 8 bits:
+  * -> 0 indica I²C emulado por software
+  * -> 1,2,... indica I²C por hardware (depende del dispositivo)
 */
 #define PCA9685_I2C_MODULE  1
 

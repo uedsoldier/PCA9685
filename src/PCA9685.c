@@ -1,18 +1,11 @@
-#include <xc.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include "../../pconfig.h"
+/**
+  * @file PCA9685.c
+  * @brief Librería para control de módulos I²C-PWM de 16 canales PCA9685
+  * @author Ing. José Roberto Parra Trewartha (uedsoldier1990@gmail.com)
+  * @version 1.0
+*/
 
 #include "PCA9685.h"
-#if PCA9685_I2C_MODULE == 0
-#include "../../emulated_protocols/I2C_SW/i2c_sw.h"
-#else
-#include "../../peripherals/I2C/i2c.h"
-#endif
-
-#include "../../utils/utils.h"
 
 /**
  * @brief
