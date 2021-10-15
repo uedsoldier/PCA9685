@@ -13,18 +13,34 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-#ifdef __XC8
+
+/**
+ * Opciones de compilación según arquitectura
+*/
+#if defined(__XC8)
 #include <xc.h>
 #include "../../pconfig.h"
-#endif
-
-#if PCA9685_I2C_MODULE == -1
+#if PCA9685_I2C_MODULE == 0
 #include "../../emulated_protocols/I2C_SW/i2c_sw.h"
 #else
 #include "../../peripherals/I2C/i2c.h"
 #endif
-
 #include "../../utils/utils.h"
+#elif defined(__arm__)
+
+#endif
+
+/**
+ * Apuntadores a funciones básicas I²C
+ */
+void (*__PCA9685_i2c_start)(void);
+void (*__PCA9685_i2c_stop)(void);
+void (*__PCA9685_i2c_restart)(void);
+uint8_t (*__PCA9685_i2c_writeByte)(uint8_t);
+uint8_t (*__PCA9685_i2c_readByte)(bool);
+
+
+
 
 /**
  * @brief Número total de dispositivos PCS9685 presentes en el bus I²C. Máximo 6 líneas de direccionamiento, para un total de 62 (2⁶-2) dispositivos.
@@ -36,6 +52,7 @@
   * Para microcontroladores PIC de 8 bits:
   * -> 0 indica I²C emulado por software
   * -> 1,2,... indica I²C por hardware (depende del dispositivo)
+  * Para Raspberry Pi //TODO
 */
 #define PCA9685_I2C_MODULE  1
 

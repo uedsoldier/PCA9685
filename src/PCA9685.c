@@ -1,5 +1,6 @@
 /**
   * @file PCA9685.c
+  * 
   * @brief Librería para control de módulos I²C-PWM de 16 canales PCA9685
   * @author Ing. José Roberto Parra Trewartha (uedsoldier1990@gmail.com)
   * @version 1.0
@@ -14,23 +15,7 @@
  * @return
  */
 inline void PCA9685_i2c_start(){
-    #if defined( PCA9685_I2C_MODULE ) 
-	#if PCA9685_I2C_MODULE == 1 
-        #if defined (I2C_V1) || defined (I2C_V4)
-        i2c_start();
-        #elif defined (I2C_V2) || defined (I2C_V3) || defined (I2C_V5) || defined (I2C_V6) || defined (I2C_V6_1) || defined (I2C_V6_2)
-        i2c1_start();
-        #endif
-    #elif PCA9685_I2C_MODULE == 2 
-        i2c2_start();
-	#elif PCA9685_I2C_MODULE == 0
-        i2c_sw_start();
-    #else
-        #error Módulo I²C incorrecto. Verificar.
-	#endif
-#else
-	#error No está definido el módulo I²C. Verificar.
-#endif 
+    __PCA9685_i2c_start();
 }
 
 /**
@@ -40,21 +25,7 @@ inline void PCA9685_i2c_start(){
  * @return
  */
 inline void PCA9685_i2c_stop(){
-    #if defined( PCA9685_I2C_MODULE ) 
-	#if PCA9685_I2C_MODULE == 1 
-    #if defined (I2C_V1) || defined (I2C_V4)
-    i2c_stop();
-        #elif defined (I2C_V2) || defined (I2C_V3) || defined (I2C_V5) || defined (I2C_V6) || defined (I2C_V6_1) || defined (I2C_V6_2)
-    i2c1_stop();
-        #endif
-    #elif PCA9685_I2C_MODULE == 2 
-    i2c2_stop();
-	#elif PCA9685_I2C_MODULE == 0
-	i2c_sw_stop();
-	#endif
-#else
-	#error No está definido el módulo I²C. Verificar.
-#endif 
+    __PCA9685_i2c_stop();
 }
 
 /**
@@ -64,21 +35,7 @@ inline void PCA9685_i2c_stop(){
  * @return
  */
 inline void PCA9685_i2c_restart(){
-    #if defined( PCA9685_I2C_MODULE ) 
-	#if PCA9685_I2C_MODULE == 1 
-    #if defined (I2C_V1) || defined (I2C_V4)
-    i2c_restart();
-        #elif defined (I2C_V2) || defined (I2C_V3) || defined (I2C_V5) || defined (I2C_V6) || defined (I2C_V6_1) || defined (I2C_V6_2)
-    i2c1_restart();
-        #endif
-    #elif PCA9685_I2C_MODULE == 2 
-    i2c2_restart();
-	#elif PCA9685_I2C_MODULE == 0
-	i2c_sw_restart();
-	#endif
-#else
-	#error No está definido el módulo I²C. Verificar.
-#endif 
+    __PCA9685_i2c_restart();
 }
 
 /**
@@ -88,21 +45,7 @@ inline void PCA9685_i2c_restart(){
  * @return
  */
 inline uint8_t PCA9685_i2c_writeByte(uint8_t dato){
-    #if defined( PCA9685_I2C_MODULE ) 
-	#if PCA9685_I2C_MODULE == 1 
-    #if defined (I2C_V1) || defined (I2C_V4)
-    return i2c_writeByte(dato);
-        #elif defined (I2C_V2) || defined (I2C_V3) || defined (I2C_V5) || defined (I2C_V6) || defined (I2C_V6_1) || defined (I2C_V6_2)
-    return i2c1_writeByte(dato);
-        #endif
-    #elif PCA9685_I2C_MODULE == 2 
-    return i2c2_writeByte(dato);    
-	#elif PCA9685_I2C_MODULE == 0
-	return i2c_sw_writeByte(dato);
-	#endif
-#else
-	#error No está definido el módulo I²C. Verificar.
-#endif 
+    return __PCA9685_i2c_writeByte(dato);
 }
 
 /**
@@ -112,21 +55,7 @@ inline uint8_t PCA9685_i2c_writeByte(uint8_t dato){
  * @return
  */
 inline uint8_t PCA9685_i2c_readByte(bool ack){
-    #if defined( PCA9685_I2C_MODULE ) 
-	#if PCA9685_I2C_MODULE == 1 
-#if defined (I2C_V1) || defined (I2C_V4)
-    return i2c_readByte(ack);
-        #elif defined (I2C_V2) || defined (I2C_V3) || defined (I2C_V5) || defined (I2C_V6) || defined (I2C_V6_1) || defined (I2C_V6_2)
-    return i2c1_readByte(ack);
-        #endif
-    #elif PCA9685_I2C_MODULE == 2 
-    return i2c2_readByte(ack);
-	#elif PCA9685_I2C_MODULE == 0
-    return i2c_sw_readByte(ack);
-	#endif
-#else
-	#error No está definido el módulo I²C. Verificar.
-#endif 
+    return __PCA9685_i2c_readByte(ack);
 }
 
 /**
@@ -175,6 +104,46 @@ uint8_t PCA9685_readRegister(PCA9685 *modulo, uint8_t reg){
  * @return (bool) True en caso de inicializacion correcta, false en caso contrarooi
  */
 bool PCA9685_init(PCA9685 *modulo, uint8_t address) {
+    // Inicialización de apuntadores a callbacks
+    #if defined(__XC8)
+        #if defined( PCA9685_I2C_MODULE ) 
+            #if PCA9685_I2C_MODULE == 1 
+                #if defined (I2C_V1) || defined (I2C_V4)
+    __PCA9685_i2c_start = i2c_start;
+    __PCA9685_i2c_stop = i2c_stop;
+    __PCA9685_i2c_restart = i2c_restart;
+    __PCA9685_i2c_writeByte = i2c_writeByte;
+    __PCA9685_i2c_readByte = i2c_readByte;
+                #elif defined (I2C_V2) || defined (I2C_V3) || defined (I2C_V5) || defined (I2C_V6) || defined (I2C_V6_1) || defined (I2C_V6_2)
+    __PCA9685_i2c_start = i2c1_start;
+    __PCA9685_i2c_stop = i2c1_stop;
+    __PCA9685_i2c_restart = i2c1_restart;
+    __PCA9685_i2c_writeByte = i2c1_writeByte;
+    __PCA9685_i2c_readByte = i2c1_readByte;
+                #endif
+            #elif PCA9685_I2C_MODULE == 2 
+    __PCA9685_i2c_start = i2c2_start;
+    __PCA9685_i2c_stop = i2c2_stop;
+    __PCA9685_i2c_restart = i2c2_restart;
+    __PCA9685_i2c_writeByte = i2c2_writeByte;
+    __PCA9685_i2c_readByte = i2c2_readByte;
+            #elif PCA9685_I2C_MODULE == 0
+    __PCA9685_i2c_start = i2c_sw_start;
+    __PCA9685_i2c_stop = i2c_sw_stop;
+    __PCA9685_i2c_restart = i2c_sw_restart;
+    __PCA9685_i2c_writeByte = i2c_sw_writeByte;
+    __PCA9685_i2c_readByte = i2c_sw_readByte;
+            #else
+                #error Módulo I²C incorrecto. Verificar.
+            #endif
+        #else
+            #error No está definido el módulo I²C. Verificar.
+        #endif 
+    
+    #else
+    // Agregar callbacks deseadas
+    #endif
+
     if(PCA9685_isConnected(modulo)) {
         modulo->i2cAddress_w = (PCA9685_I2C_ADDRESS|address);
         modulo->i2cAddress_r = (modulo->i2cAddress_w|0x01);
@@ -216,7 +185,6 @@ void PCA9685_printDeviceDetails(PCA9685 *modulo){
     printf(" -output disabled mode: %s\r\n",PCA9685_outputDisabledMode_str_P[PCA9685_getOutputDisabledMode(modulo)]);
     printf(" -channel update mode: %s\r\n",PCA9685_channelUpdateMode_str_P[PCA9685_getChannelUpdateMode(modulo)]);
     printf(" -phase balancer: %s\r\n",PCA9685_phaseBalancer_str_P[PCA9685_getPhaseBalancer(modulo)]);
-   
 }
 #endif
 
