@@ -40,8 +40,6 @@ uint8_t (*__PCA9685_i2c_writeByte)(uint8_t);
 uint8_t (*__PCA9685_i2c_readByte)(bool);
 
 
-
-
 /**
  * @brief Número total de dispositivos PCS9685 presentes en el bus I²C. Máximo 6 líneas de direccionamiento, para un total de 62 (2⁶-2) dispositivos.
 */
@@ -53,6 +51,7 @@ uint8_t (*__PCA9685_i2c_readByte)(bool);
   * -> 0 indica I²C emulado por software
   * -> 1,2,... indica I²C por hardware (depende del dispositivo)
   * Para Raspberry Pi //TODO
+  * -> 0,1 para los diferentes modulos I²C por hardware de la Raspberry
 */
 #define PCA9685_I2C_MODULE  1
 
