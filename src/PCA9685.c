@@ -1,7 +1,7 @@
 /**
   * @file PCA9685.c
   * 
-  * @brief Librería para control de módulos I²C-PWM de 16 canales PCA9685
+  * @brief Librería para control de módulos PCA9685, drivers I²C-PWM de 16 canales 
   * @author Ing. José Roberto Parra Trewartha (uedsoldier1990@gmail.com)
   * @version 1.0
 */
@@ -66,7 +66,7 @@ inline uint8_t PCA9685_i2c_readByte(bool ack){
  */
 void PCA9685_writeRegister(PCA9685 *modulo, uint8_t reg, uint8_t val){
     uint8_t addr_w = modulo->i2cAddress_w;
-    #ifdef PCA9685_DEBUG
+    #if defined(PCA9685_LOG) && PCA9685_LOG !=0 
     printf("Write register reg:0x%X val:0x%X to PCA9685 at 0x%02X \r\n",reg,val,addr_w);
     #endif
     PCA9685_i2c_start();
@@ -91,7 +91,7 @@ uint8_t PCA9685_readRegister(PCA9685 *modulo, uint8_t reg){
     PCA9685_i2c_writeByte(addr_r);
     retval = PCA9685_i2c_readByte(0);
     PCA9685_i2c_stop();
-    #ifdef PCA9685_DEBUG
+    #if defined(PCA9685_LOG) && PCA9685_LOG !=0 
     printf("Read register reg:0x%X val:0x%X from PCA9685 at 0x%02X \r\n",reg,retval,addr_r);
     #endif
     return retval;
@@ -145,7 +145,7 @@ bool PCA9685_init(PCA9685 *modulo, uint8_t address) {
     #endif
 
     if(PCA9685_isConnected(modulo)) {
-        modulo->i2cAddress_w = (PCA9685_I2C_ADDRESS|address);
+        modulo->i2cAddress_w = ( (PCA9685_I2C_BASE_MODULE_ADDRESS |address) <<1 );
         modulo->i2cAddress_r = (modulo->i2cAddress_w|0x01);
         modulo->driverMode = PCA9685_OutputDriverMode_TotemPole;
         modulo->enabledMode = PCA9685_OutputEnabledMode_Normal;
@@ -155,14 +155,14 @@ bool PCA9685_init(PCA9685 *modulo, uint8_t address) {
         modulo->isProxyAddresser = false;
         modulo->lastI2CError = 0;
         PCA9685_writeRegister(modulo,PCA9685_MODE1_REG,PCA9685_MODE1_RESTART | PCA9685_MODE1_AUTOINC);
-    #ifdef PCA9685_DEBUG
+    #if defined(PCA9685_LOG) && PCA9685_LOG !=0 
         printf("PCA9685 init OK\r\n");
         PCA9685_printDeviceDetails(modulo);
     #endif
         return true;
     }
     else{
-        #ifdef PCA9685_DEBUG
+        #if defined(PCA9685_LOG) && PCA9685_LOG !=0 
         printf("PCA9685 not present. Verify i2c bus.\r\n");
         #endif
         return false;
@@ -171,7 +171,7 @@ bool PCA9685_init(PCA9685 *modulo, uint8_t address) {
     
 }
 
-#ifdef PCA9685_DEBUG
+#if defined(PCA9685_LOG) && PCA9685_LOG !=0 
 /**
  * 
  * @param modulo
@@ -195,7 +195,7 @@ void PCA9685_printDeviceDetails(PCA9685 *modulo){
  * @return (void)
  */
 void PCA9685_resetDevices(void) {
-    #ifdef PCA9685_DEBUG
+    #if defined(PCA9685_LOG) && PCA9685_LOG !=0 
     printf("PCA9685 Software reset...");
     #endif
     PCA9685_i2c_start();
@@ -203,15 +203,15 @@ void PCA9685_resetDevices(void) {
     PCA9685_i2c_writeByte(PCA9685_SOFTWARE_RESET);          // Constante para software reset
     PCA9685_i2c_stop();
     __delay_us(5);
-    #ifdef PCA9685_DEBUG
+    #if defined(PCA9685_LOG) && PCA9685_LOG !=0 
     printf("OK\r\n");
     #endif
 }
 
 /**
- * 
- * @param address
- * @return 
+ * @brief Función para detectar si al menos un módulo PCA8685 se encuentra conectado al bus I²C
+ * @param modulo (*PCA9685) Apuntador a estructura de datos de tipo PCA9685
+ * @return (bool) True en caso de haber detectado dispositivos, false en caso contrario
  */
 bool PCA9685_isConnected(PCA9685 *modulo){
     uint8_t _i2cstatus;
@@ -219,10 +219,9 @@ bool PCA9685_isConnected(PCA9685 *modulo){
     uint8_t addr = modulo->i2cAddress_w;
     PCA9685_i2c_start();
     _i2cstatus = PCA9685_i2c_writeByte(addr);
-    connected = (_i2cstatus == I2C_ACK)? true:false;
+    connected = (_i2cstatus == 0)? true:false;
     PCA9685_i2c_stop();
-    __delay_us(2);
-    #ifdef PCA9685_DEBUG
+    #if defined(PCA9685_LOG) && PCA9685_LOG !=0 
     printf("PCA9685 at i2c address 0x%02X is connected? %s\r\n",addr,connected? "OK":"NOT OK");
     #endif
     return connected;
@@ -300,19 +299,18 @@ PCA9685_PhaseBalancer PCA9685_getPhaseBalancer(PCA9685 *modulo) {
  */
 void PCA9685_setFrequency(PCA9685 *modulo, float pwm_freq) {
 	if(pwm_freq < 0)	return;// Valor incorrecto
-
 	uint32_t divisor = (uint32_t)(4096.0F * pwm_freq);
 	uint32_t preescala = division_entera_sin_signo(PCA9685_OSC_CLOCK,divisor)-1;
 	preescala = constrain(preescala,3,255);	// Acotación [3,255]
     uint8_t _pre = (uint8_t)preescala;
 
-	#ifdef PCA9685_DEBUG
+	#if defined(PCA9685_LOG) && PCA9685_LOG !=0 
     printf("Set PWM frequency -> %.2f [Hz] prescale-> %u\r\n",pwm_freq,_pre);
 	#endif
 
 	// El registro PRE_SCALE solo se puede establecer cuando el bit SLEEP del registro MODE1 se establece en 1 lógico.
     uint8_t mode1Reg = PCA9685_readRegister( modulo, PCA9685_MODE1_REG);
-    mode1Reg = (mode1Reg & ~PCA9685_MODE1_RESTART) | PCA9685_MODE1_SLEEP;
+    mode1Reg = mode1Reg = (mode1Reg & ~PCA9685_MODE1_RESTART) | PCA9685_MODE1_SLEEP;
     PCA9685_writeRegister(modulo, PCA9685_MODE1_REG, mode1Reg);
     PCA9685_writeRegister(modulo, PCA9685_PRESCALE_REG, preescala);
 
@@ -334,7 +332,7 @@ void PCA9685_setFrequency(PCA9685 *modulo, float pwm_freq) {
 void PCA9685_setChannelOn(PCA9685 *modulo, uint8_t channel) {
 	if (channel > 15)
         return;
-	#ifdef PCA9685_DEBUG
+	#if defined(PCA9685_LOG) && PCA9685_LOG !=0 
     printf("Channel %u ON\r\n",channel);
 	#endif
 
@@ -351,7 +349,7 @@ void PCA9685_setChannelOn(PCA9685 *modulo, uint8_t channel) {
 void PCA9685_setChannelOff(PCA9685 *modulo, uint8_t channel) {
 	if (channel > 15)
         return;
-	#ifdef PCA9685_DEBUG
+	#if defined(PCA9685_LOG) && PCA9685_LOG !=0 
 	printf("Channel %u OFF\r\n",channel);
 	#endif
 
@@ -369,7 +367,7 @@ void PCA9685_setChannelPWM(PCA9685 *modulo, uint8_t channel, uint16_t duty_cycle
 	if (channel > 15) 
         return;
 
-	#ifdef PCA9685_DEBUG
+	#if defined(PCA9685_LOG) && PCA9685_LOG !=0 
     printf("Channel %u PWM-> %u\r\n",channel,duty_cycle);
 	#endif
 
@@ -393,7 +391,7 @@ void PCA9685_setChannelsPWM(PCA9685 *modulo, uint8_t starting_channel, uint8_t n
         return;
     if (starting_channel + num_channels > 16) num_channels -= (starting_channel + num_channels) - 16;
 
-#ifdef PCA9685_DEBUG
+#if defined(PCA9685_LOG) && PCA9685_LOG !=0 
     printf("Set channels PWM. numChannels -> %u",num_channels);
 #endif
 
@@ -428,9 +426,9 @@ void PCA9685_setChannelsPWM(PCA9685 *modulo, uint8_t starting_channel, uint8_t n
  * @return
  */
 void PCA9685_setAllChannelsPWM(PCA9685 *modulo, uint16_t duty_cycle) {
-	#ifdef PCA9685_DEBUG
+	#if defined(PCA9685_LOG) && PCA9685_LOG !=0 
     printf("Set all channels PWM -> %u",duty_cycle);
-#endif
+    #endif
 
 //    PCA9685_writeChannelBegin(modulo, PCA9685_ALLLED_CHANNEL);
 //
@@ -453,14 +451,14 @@ uint16_t PCA9685_getChannelPWM(PCA9685 *modulo, uint8_t channel) {
 
     uint8_t regAddress = PCA9685_LED0_REG + (channel << 2);
 
-#ifdef PCA9685_DEBUG
+#if defined(PCA9685_LOG) && PCA9685_LOG !=0 
     printf("Channel %u regAddress -> 0x%X\r\n",channel,regAddress);
 #endif
 
 ////    i2cWire_beginTransmission(modulo->i2cAddress);
 ////    i2cWire_write(regAddress);
 ////    if (i2cWire_endTransmission()) {
-//#ifdef PCA9685_DEBUG
+//#if defined(PCA9685_LOG) && PCA9685_LOG !=0 
 ////        checkForErrors();
 //#endif
 ////        return 0;
@@ -474,7 +472,7 @@ uint16_t PCA9685_getChannelPWM(PCA9685 *modulo, uint8_t channel) {
 //        PCA9685_i2c_stop(); // Manually have to send stop bit in software i2c mode
 //#endif
 //        modulo->lastI2CError = 4;
-//#ifdef PCA9685_DEBUG
+//#if defined(PCA9685_LOG) && PCA9685_LOG !=0 
 //        checkForErrors();
 //#endif
 //        return 0;
@@ -496,7 +494,7 @@ uint16_t PCA9685_getChannelPWM(PCA9685 *modulo, uint8_t channel) {
 //    PCA9685_i2c_stop(); // Manually have to send stop bit in software i2c mode
 //#endif
 //
-//#ifdef PCA9685_DEBUG
+//#if defined(PCA9685_LOG) && PCA9685_LOG !=0 
 //    printf(" * phaseBegin: %u\r\n",phaseBegin);
 //    printf(" * phaseEnd: %u\r\n",phaseEnd);
 //#endif
@@ -521,7 +519,7 @@ uint16_t PCA9685_getChannelPWM(PCA9685 *modulo, uint8_t channel) {
 //        // Section 7.3.3 example 2
 //        retVal = (phaseEnd + PCA9685_PWM_FULL) - phaseBegin;
 //
-//#ifdef PCA9685_DEBUG
+//#if defined(PCA9685_LOG) && PCA9685_LOG !=0 
 //    printf("retVal: %u\r\n",retVal);
 //#endif
 //
@@ -581,7 +579,7 @@ void PCA9685_writeChannelBegin(PCA9685 *modulo, uint8_t channel) {
     else
         regAddress = PCA9685_ALLLED_REG;
 
-#ifdef PCA9685_DEBUG
+#if defined(PCA9685_LOG) && PCA9685_LOG !=0 
     printf("writeChannelBegin channel -> %u regAddress -> 0x%X\r\n",channel,regAddress);
 #endif
     PCA9685_i2c_start();
@@ -595,12 +593,12 @@ void PCA9685_writeChannelBegin(PCA9685 *modulo, uint8_t channel) {
  * @return
  */
 void PCA9685_writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd) {
-	#ifdef PCA9685_DEBUG
+	#if defined(PCA9685_LOG) && PCA9685_LOG !=0 
     printf(" * phaseBegin: %u\r\n",phaseBegin);
     printf(" * phaseEnd: %u\r\n",phaseEnd);
 #endif
 
-#ifndef PCA9685_SWAP_PWM_BEG_END_REGS
+#if PCA9685_SWAP_PWM_BEG_END_REGS == 0
     
     PCA9685_i2c_writeByte(make8(phaseBegin,0));
     PCA9685_i2c_writeByte(make8(phaseBegin,1));
@@ -613,6 +611,37 @@ void PCA9685_writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd) {
     PCA9685_i2c_writeByte(make8(phaseBegin,0));
     PCA9685_i2c_writeByte(make8(phaseBegin,1));
 #endif
+}
+
+/**
+ * @brief Función para permitir que se utilice la línea de reloj externa (se requiere reinicio de energía para deshabilitar)
+ * @param modulo (*PCA9685)
+ */
+void PCA968_useExternalClock(PCA9685 *modulo){
+
+    /**
+     * Para usar el pin EXTCLK, este bit debe establecerse mediante la siguiente secuencia:
+     * 1. Configure el bit SLEEP en MODE1. Esto apaga el oscilador interno.
+     * 2. Establecer los bits SLEEP y EXTCLK en MODE1 en alto. El cambio está hecho el reloj externo puede estar activo durante
+     * el cambio porque el bit SLEEP está en alto
+     * Este bit es un "bit pegajoso", es decir, no se puede borrar escribiéndole un 0 lógico. El bit EXTCLK solo se puede poner en 0
+     * mediante un ciclo de energía o un reinicio por software.
+     * El rango EXTCLK es de CD hasta 50 MHz.
+    */
+    uint8_t mode1Reg = PCA9685_readRegister( modulo, PCA9685_MODE1_REG);
+    mode1Reg = (mode1Reg & ~PCA9685_MODE1_RESTART) | PCA9685_MODE1_SLEEP;
+    PCA9685_writeRegister(modulo,PCA9685_MODE1_REG, mode1Reg);
+    mode1Reg |= PCA9685_MODE1_EXTCLK;
+    PCA9685_writeRegister(modulo,PCA9685_MODE1_REG, mode1Reg);
+
+    // Se necesitan 500us como máximo para que el oscilador esté en funcionamiento una vez que el bit SLEEP se haya establecido en 0 lógico.
+    mode1Reg = (mode1Reg & ~PCA9685_MODE1_SLEEP) | PCA9685_MODE1_RESTART;
+    PCA9685_writeRegister(modulo, PCA9685_MODE1_REG, mode1Reg);
+    delayMicroseconds(500);
+
+    #if defined(PCA9685_LOG) && PCA9685_LOG !=0 
+    printf("PCA9685 using external clock\n");
+	#endif
 }
 
 ///**
